@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Закупки-ДР - Система планирования закупок</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #ea580c;
+            --light-bg: #f8fafc;
+            --dark-bg: #1e293b;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--light-bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .navbar h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .nav-menu a:hover {
+            opacity: 0.8;
+        }
+
+        .user-info {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            opacity: 0.9;
+        }
+
+        .main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card h3 {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .toolbar input,
+        .toolbar select {
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            font-size: 0.95rem;
+            max-width: 300px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--light-bg);
+        }
+
+        th {
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef08a;
+            color: #78350f;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-info {
+            background: #cffafe;
+            color: #164e63;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .login-container {
+            display: flex;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+        }
+
+        .login-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .demo-badge {
+            display: inline-block;
+            background: #fbbf24;
+            color: #78350f;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .actions button {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border-left-color: var(--success);
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left-color: var(--danger);
+        }
+
+        .alert-info {
+            background: #cffafe;
+            color: #164e63;
+            border-left-color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .navbar-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-menu {
+                flex-wrap: wrap;
+                gap: 1rem;
+                width: 100%;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toolbar input,
+            .toolbar select {
+                max-width: none;
+            }
+
+            .main {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="page active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <h1>Закупки-ДР</h1>
+                    <p>Система планирования закупок материалов</p>
+                    <div class="demo-badge">🎭 ДЕМО РЕЖИМ</div>
+                </div>
+
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="demo@zakupki-dr.ru" value="demo@zakupki-dr.ru">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" placeholder="demo" value="demo">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Войти</button>
+                </form>
+
+                <div style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.875rem;">
+                    ✓ Подходят любые данные для входа
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation & Content -->
+    <div id="app" style="display: none; width: 100%;">
+        <nav class="navbar">
+            <div class="navbar-content">
+                <h1>Закупки-ДР</h1>
+                <ul class="nav-menu">
+                    <li><a onclick="showPage('dashboard')">Главная</a></li>
+                    <li><a onclick="showPage('materials')">Материалы</a></li>
+                    <li><a onclick="showPage('suppliers')">Поставщики</a></li>
+                    <li><a onclick="showPage('orders')">Заказы</a></li>
+                    <li><a onclick="showPage('procurement')">Закупки</a></li>
+                    <li><a onclick="showPage('reports')">Отчеты</a></li>
+                </ul>
+                <div class="user-info">
+                    <span id="user-name">Иван Петров</span>
+                    <button class="btn btn-danger" onclick="logout()">Выход</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main">
+            <!-- Dashboard -->
+            <div id="dashboard" class="page active">
+                <div class="page-header">
+                    <h1>Главная панель</h1>
+                    <p>Обзор ключевых показателей системы</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Материалы</h3>
+                        <div class="value" id="stats-materials">5</div>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary);">позиций в системе</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Поставщики</h3>
+                        <div class="value" id="stats-suppliers">3</div>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary);">активных поставщиков</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Активные заказы</h3>
+                        <div class="value" id="stats-orders">3</div>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary);">текущих заказов</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Низкие остатки</h3>
+                        <div class="value" style="color: var(--warning);" id="stats-low">2</div>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary);">требуют пополнения</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Основные функции</h2>
+                    <ul style="margin-left: 1.5rem;">
+                        <li style="margin-bottom: 0.75rem;">✓ Управление справочниками материалов и поставщиков</li>
+                        <li style="margin-bottom: 0.75rem;">✓ Планирование закупок на основе заказов</li>
+                        <li style="margin-bottom: 0.75rem;">✓ Контроль остатков на складе в режиме реального времени</li>
+                        <li style="margin-bottom: 0.75rem;">✓ Отслеживание статусов заказов поставщикам</li>
+                        <li style="margin-bottom: 0.75rem;">✓ Аналитические отчеты и ABC-анализ материалов</li>
+                        <li style="margin-bottom: 0.75rem;">✓ Разграничение прав доступа по ролям пользователей</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2>🎭 Информация о демо режиме</h2>
+                    <p style="margin-bottom: 0.5rem;">Вы используете демонстрационный режим. Основные особенности:</p>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>• Встроенные демонстрационные данные</li>
+                        <li>• Все данные хранятся в памяти браузера</li>
+                        <li>• При обновлении страницы (F5) данные вернутся к исходному состоянию</li>
+                        <li>• Сервер базы данных не требуется</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Materials -->
+            <div id="materials" class="page">
+                <div class="page-header">
+                    <h1>Материалы</h1>
+                    <p>Управление справочником материалов</p>
+                </div>
+
+                <div class="card">
+                    <div class="toolbar">
+                        <input type="text" placeholder="Поиск по названию..." id="materials-search" onkeyup="filterMaterials()">
+                        <select id="materials-category" onchange="filterMaterials()">
+                            <option value="">Все категории</option>
+                            <option value="wood">Древесина</option>
+                            <option value="hardware">Фурнитура</option>
+                            <option value="paint">Краска</option>
+                            <option value="fasteners">Крепеж</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="addMaterial()">+ Добавить материал</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Код</th>
+                                    <th>Наименование</th>
+                                    <th>Категория</th>
+                                    <th>Ед. изм.</th>
+                                    <th>Цена</th>
+                                    <th>Мин. остаток</th>
+                                    <th>Макс. остаток</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materials-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suppliers -->
+            <div id="suppliers" class="page">
+                <div class="page-header">
+                    <h1>Поставщики</h1>
+                    <p>Управление поставщиками материалов</p>
+                </div>
+
+                <div class="card">
+                    <div class="toolbar">
+                        <input type="text" placeholder="Поиск по названию..." id="suppliers-search" onkeyup="filterSuppliers()">
+                        <button class="btn btn-primary" onclick="addSupplier()">+ Добавить поставщика</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Наименование</th>
+                                    <th>Контактное лицо</th>
+                                    <th>Email</th>
+                                    <th>Телефон</th>
+                                    <th>Город</th>
+                                    <th>Дни доставки</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliers-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders -->
+            <div id="orders" class="page">
+                <div class="page-header">
+                    <h1>Заказы</h1>
+                    <p>Заказы на производство мебели</p>
+                </div>
+
+                <div class="card">
+                    <div class="toolbar">
+                        <select id="orders-status" onchange="filterOrders()">
+                            <option value="">Все статусы</option>
+                            <option value="draft">Черновик</option>
+                            <option value="pending">В ожидании</option>
+                            <option value="completed">Завершен</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="addOrder()">+ Новый заказ</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Номер</th>
+                                    <th>Клиент</th>
+                                    <th>Дата заказа</th>
+                                    <th>Требуемая дата</th>
+                                    <th>Статус</th>
+                                    <th>Сумма</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Procurement -->
+            <div id="procurement" class="page">
+                <div class="page-header">
+                    <h1>Закупки</h1>
+                    <p>Заявки на закупку материалов</p>
+                </div>
+
+                <div class="card">
+                    <div class="toolbar">
+                        <select id="procurement-status" onchange="filterProcurement()">
+                            <option value="">Все статусы</option>
+                            <option value="draft">Черновик</option>
+                            <option value="approved">Одобрена</option>
+                            <option value="sent">Отправлена</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="addProcurementRequest()">+ Новая заявка</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Номер заявки</th>
+                                    <th>Материал</th>
+                                    <th>Кол-во</th>
+                                    <th>Поставщик</th>
+                                    <th>Статус</th>
+                                    <th>Ожид. доставка</th>
+                                </tr>
+                            </thead>
+                            <tbody id="procurement-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports -->
+            <div id="reports" class="page">
+                <div class="page-header">
+                    <h1>Отчеты</h1>
+                    <p>Аналитические отчеты и анализ</p>
+                </div>
+
+                <div class="card">
+                    <h2>📊 ABC-Анализ материалов</h2>
+                    <table style="margin-top: 1rem;">
+                        <thead>
+                            <tr>
+                                <th>Материал</th>
+                                <th>Стоимость</th>
+                                <th>Класс</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Сосна доска 50х100</td>
+                                <td>175,000 ₽</td>
+                                <td><span class="badge badge-success">A</span></td>
+                            </tr>
+                            <tr>
+                                <td>Петли мебельные 10см</td>
+                                <td>11,250 ₽</td>
+                                <td><span class="badge badge-warning">B</span></td>
+                            </tr>
+                            <tr>
+                                <td>Саморезы 4х50</td>
+                                <td>960 ₽</td>
+                                <td><span class="badge badge-danger">C</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h2>📦 Состояние складских остатков</h2>
+                    <table style="margin-top: 1rem;">
+                        <thead>
+                            <tr>
+                                <th>Материал</th>
+                                <th>Остаток</th>
+                                <th>Мин. остаток</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Сосна доска 50х100</td>
+                                <td>35 м³</td>
+                                <td>10 м³</td>
+                                <td><span class="badge badge-success">OK</span></td>
+                            </tr>
+                            <tr>
+                                <td>Ель доска 40х80</td>
+                                <td>8 м³</td>
+                                <td>5 м³</td>
+                                <td><span class="badge badge-warning">Низкий</span></td>
+                            </tr>
+                            <tr>
+                                <td>Клей ПВА 1л</td>
+                                <td>15 л</td>
+                                <td>20 л</td>
+                                <td><span class="badge badge-danger">Критично</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Demo Data
+        const mockData = {
+            user: { id: '1', email: 'demo@zakupki-dr.ru', full_name: 'Иван Петров', role: 'manager' },
+            materials: [
+                { id: '1', code: 'MAT-001', name: 'Сосна доска 50х100', category: 'wood', unit: 'м³', price: 5000, min: 10, max: 100 },
+                { id: '2', code: 'MAT-002', name: 'Ель доска 40х80', category: 'wood', unit: 'м³', price: 4500, min: 5, max: 50 },
+                { id: '3', code: 'HAR-001', name: 'Петли мебельные 10см', category: 'hardware', unit: 'шт', price: 25, min: 500, max: 2000 },
+                { id: '4', code: 'CHM-001', name: 'Клей ПВА 1л', category: 'paint', unit: 'л', price: 150, min: 20, max: 100 },
+                { id: '5', code: 'FAT-001', name: 'Саморезы 4х50', category: 'fasteners', unit: 'кг', price: 120, min: 10, max: 50 }
+            ],
+            suppliers: [
+                { id: '1', name: 'ООО "Лесопродукты"', contact: 'Александр Смирнов', email: 'info@lesoproducts.ru', phone: '+7-495-123-4567', city: 'Москва', days: 7 },
+                { id: '2', name: 'ЗАО "Фурнитура-Плюс"', contact: 'Мария Иванова', email: 'zakupki@furnitura-plus.ru', phone: '+7-495-234-5678', city: 'Тверь', days: 5 },
+                { id: '3', name: 'ПАО "Химпродукт"', contact: 'Сергей Петров', email: 'sales@chimproduct.ru', phone: '+7-495-345-6789', city: 'Московская область', days: 3 }
+            ],
+            orders: [
+                { id: '1', number: 'ORD-2026-001', customer: 'Клиент А', date: '2026-09-15', required: '2026-09-30', status: 'draft', total: 45000 },
+                { id: '2', number: 'ORD-2026-002', customer: 'Клиент Б', date: '2026-09-18', required: '2026-10-05', status: 'pending', total: 67500 },
+                { id: '3', number: 'ORD-2026-003', customer: 'Клиент В', date: '2026-09-20', required: '2026-10-10', status: 'completed', total: 32000 }
+            ],
+            procurement: [
+                { id: '1', number: 'PR-2026-001', material: 'Сосна доска 50х100', qty: 20, supplier: 'ООО "Лесопродукты"', status: 'approved', delivery: '2026-09-27' },
+                { id: '2', number: 'PR-2026-002', material: 'Ель доска 40х80', qty: 10, supplier: 'ООО "Лесопродукты"', status: 'draft', delivery: '2026-09-28' },
+                { id: '3', number: 'PR-2026-003', material: 'Петли мебельные 10см', qty: 1000, supplier: 'ЗАО "Фурнитура-Плюс"', status: 'sent', delivery: '2026-09-24' }
+            ]
+        };
+
+        let isAuthenticated = false;
+
+        function handleLogin(event) {
+            event.preventDefault();
+            isAuthenticated = true;
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+            document.getElementById('user-name').textContent = mockData.user.full_name;
+            renderMaterials();
+            renderSuppliers();
+            renderOrders();
+            renderProcurement();
+        }
+
+        function logout() {
+            isAuthenticated = false;
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('login-page').style.display = 'block';
+            document.getElementById('email').value = 'demo@zakupki-dr.ru';
+            document.getElementById('password').value = 'demo';
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function renderMaterials() {
+            const tbody = document.getElementById('materials-table');
+            tbody.innerHTML = mockData.materials.map(m => `
+                <tr>
+                    <td>${m.code}</td>
+                    <td>${m.name}</td>
+                    <td>${m.category}</td>
+                    <td>${m.unit}</td>
+                    <td>${m.price.toLocaleString('ru-RU')} ₽</td>
+                    <td>${m.min}</td>
+                    <td>${m.max}</td>
+                </tr>
+            `).join('');
+        }
+
+        function filterMaterials() {
+            const search = document.getElementById('materials-search').value.toLowerCase();
+            const category = document.getElementById('materials-category').value;
+            const tbody = document.getElementById('materials-table');
+
+            const filtered = mockData.materials.filter(m =>
+                (m.name.toLowerCase().includes(search)) &&
+                (category === '' || m.category === category)
+            );
+
+            tbody.innerHTML = filtered.map(m => `
+                <tr>
+                    <td>${m.code}</td>
+                    <td>${m.name}</td>
+                    <td>${m.category}</td>
+                    <td>${m.unit}</td>
+                    <td>${m.price.toLocaleString('ru-RU')} ₽</td>
+                    <td>${m.min}</td>
+                    <td>${m.max}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderSuppliers() {
+            const tbody = document.getElementById('suppliers-table');
+            tbody.innerHTML = mockData.suppliers.map(s => `
+                <tr>
+                    <td><strong>${s.name}</strong></td>
+                    <td>${s.contact}</td>
+                    <td>${s.email}</td>
+                    <td>${s.phone}</td>
+                    <td>${s.city}</td>
+                    <td>${s.days} дней</td>
+                </tr>
+            `).join('');
+        }
+
+        function filterSuppliers() {
+            const search = document.getElementById('suppliers-search').value.toLowerCase();
+            const tbody = document.getElementById('suppliers-table');
+
+            const filtered = mockData.suppliers.filter(s =>
+                s.name.toLowerCase().includes(search)
+            );
+
+            tbody.innerHTML = filtered.map(s => `
+                <tr>
+                    <td><strong>${s.name}</strong></td>
+                    <td>${s.contact}</td>
+                    <td>${s.email}</td>
+                    <td>${s.phone}</td>
+                    <td>${s.city}</td>
+                    <td>${s.days} дней</td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadge(status) {
+            const statuses = {
+                'draft': 'badge-warning',
+                'pending': 'badge-info',
+                'completed': 'badge-success',
+                'approved': 'badge-success',
+                'sent': 'badge-info'
+            };
+            const labels = {
+                'draft': 'Черновик',
+                'pending': 'В ожидании',
+                'completed': 'Завершен',
+                'approved': 'Одобрена',
+                'sent': 'Отправлена'
+            };
+            return `<span class="badge ${statuses[status] || 'badge-info'}">${labels[status]}</span>`;
+        }
+
+        function renderOrders() {
+            const tbody = document.getElementById('orders-table');
+            tbody.innerHTML = mockData.orders.map(o => `
+                <tr>
+                    <td><strong>${o.number}</strong></td>
+                    <td>${o.customer}</td>
+                    <td>${o.date}</td>
+                    <td>${o.required}</td>
+                    <td>${getStatusBadge(o.status)}</td>
+                    <td>${o.total.toLocaleString('ru-RU')} ₽</td>
+                </tr>
+            `).join('');
+        }
+
+        function filterOrders() {
+            const status = document.getElementById('orders-status').value;
+            const tbody = document.getElementById('orders-table');
+
+            const filtered = mockData.orders.filter(o =>
+                status === '' || o.status === status
+            );
+
+            tbody.innerHTML = filtered.map(o => `
+                <tr>
+                    <td><strong>${o.number}</strong></td>
+                    <td>${o.customer}</td>
+                    <td>${o.date}</td>
+                    <td>${o.required}</td>
+                    <td>${getStatusBadge(o.status)}</td>
+                    <td>${o.total.toLocaleString('ru-RU')} ₽</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderProcurement() {
+            const tbody = document.getElementById('procurement-table');
+            tbody.innerHTML = mockData.procurement.map(p => `
+                <tr>
+                    <td><strong>${p.number}</strong></td>
+                    <td>${p.material}</td>
+                    <td>${p.qty}</td>
+                    <td>${p.supplier}</td>
+                    <td>${getStatusBadge(p.status)}</td>
+                    <td>${p.delivery}</td>
+                </tr>
+            `).join('');
+        }
+
+        function filterProcurement() {
+            const status = document.getElementById('procurement-status').value;
+            const tbody = document.getElementById('procurement-table');
+
+            const filtered = mockData.procurement.filter(p =>
+                status === '' || p.status === status
+            );
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr>
+                    <td><strong>${p.number}</strong></td>
+                    <td>${p.material}</td>
+                    <td>${p.qty}</td>
+                    <td>${p.supplier}</td>
+                    <td>${getStatusBadge(p.status)}</td>
+                    <td>${p.delivery}</td>
+                </tr>
+            `).join('');
+        }
+
+        function addMaterial() { alert('Функция добавления материала будет реализована'); }
+        function addSupplier() { alert('Функция добавления поставщика будет реализована'); }
+        function addOrder() { alert('Функция создания заказа будет реализована'); }
+        function addProcurementRequest() { alert('Функция создания заявки на закупку будет реализована'); }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            showPage('dashboard');
+        });
+    </script>
+</body>
+</html>

@@ -1,7 +1,5 @@
 import create from 'zustand'
-import axios from 'axios'
-
-const API_URL = '/api'
+import api from '../services/api'
 
 export const useAuthStore = create((set) => ({
   user: null,
@@ -9,15 +7,15 @@ export const useAuthStore = create((set) => ({
   isAuthenticated: !!localStorage.getItem('token'),
   loading: false,
   error: null,
+  isUsingMock: api.isUsingMock(),
 
   login: async (email, password) => {
     set({ loading: true, error: null })
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { email, password })
-      const { token, user } = response.data
+      const response = await api.login(email, password)
+      const { token, user } = response
 
       localStorage.setItem('token', token)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
       set({
         user,
@@ -27,7 +25,7 @@ export const useAuthStore = create((set) => ({
       })
       return true
     } catch (error) {
-      const message = error.response?.data?.error || 'Login failed'
+      const message = error.error || error.message || 'Login failed'
       set({ error: message, loading: false })
       return false
     }
@@ -36,15 +34,11 @@ export const useAuthStore = create((set) => ({
   register: async (email, password, fullName) => {
     set({ loading: true, error: null })
     try {
-      const response = await axios.post(`${API_URL}/auth/register`, {
-        email,
-        password,
-        full_name: fullName
-      })
+      await api.register(email, password, fullName)
       set({ loading: false })
       return true
     } catch (error) {
-      const message = error.response?.data?.error || 'Registration failed'
+      const message = error.error || error.message || 'Registration failed'
       set({ error: message, loading: false })
       return false
     }
@@ -52,7 +46,6 @@ export const useAuthStore = create((set) => ({
 
   logout: () => {
     localStorage.removeItem('token')
-    delete axios.defaults.headers.common['Authorization']
     set({
       user: null,
       token: null,
@@ -65,21 +58,23 @@ export const useAuthStore = create((set) => ({
     if (!token) return
 
     try {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      const response = await axios.get(`${API_URL}/auth/me`)
+      const user = await api.getMe()
       set({
-        user: response.data,
+        user,
         isAuthenticated: true,
         token
       })
     } catch (error) {
       localStorage.removeItem('token')
-      delete axios.defaults.headers.common['Authorization']
       set({
         user: null,
         token: null,
         isAuthenticated: false
       })
     }
+  },
+
+  setMockMode: (use) => {
+    api.setMockMode(use)
   }
 }))

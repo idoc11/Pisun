@@ -783,8 +783,9 @@
             event.preventDefault();
             isAuthenticated = true;
             document.getElementById('login-page').style.display = 'none';
-            document.getElementById('app').style.display = 'flex';
+            document.getElementById('app').style.display = 'block';
             document.getElementById('user-name').textContent = mockData.user.full_name;
+            showPage('dashboard');
             renderMaterials();
             renderSuppliers();
             renderOrders();
@@ -966,11 +967,6 @@
         function addSupplier() { alert('Функция добавления поставщика будет реализована'); }
         function addOrder() { alert('Функция создания заказа будет реализована'); }
         function addProcurementRequest() { alert('Функция создания заявки на закупку будет реализована'); }
-
-        // Initialize on load
-        window.addEventListener('load', () => {
-            showPage('dashboard');
-        });
     </script>
 </body>
 </html>

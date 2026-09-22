@@ -20,28 +20,28 @@ function App() {
     checkAuth()
   }, [])
 
-  if (!isAuthenticated) {
-    return <Login />
-  }
-
   return (
     <Router>
-      <div className="app-container">
-        <Navigation />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/materials" element={<Materials />} />
-            <Route path="/suppliers" element={<Suppliers />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/procurement" element={<Procurement />} />
-            <Route path="/warehouse" element={<Warehouse />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
+      {!isAuthenticated ? (
+        <Login />
+      ) : (
+        <div className="app-container">
+          <Navigation />
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/materials" element={<Materials />} />
+              <Route path="/suppliers" element={<Suppliers />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/procurement" element={<Procurement />} />
+              <Route path="/warehouse" element={<Warehouse />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+        </div>
+      )}
     </Router>
   )
 }
